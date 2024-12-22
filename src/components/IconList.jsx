@@ -8,7 +8,7 @@ import {
     DialogTrigger,
   } from "@/components/ui/dialog"
 import { Smile, icons } from 'lucide-react'
-import { iconList } from '../Constants/icons.js';
+import { iconList } from '../constants/icons.js';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import axios from 'axios';
 
