@@ -33,11 +33,22 @@ function IconList({selectedIcon}) {
     const getPngIcons = async () => {
         setIsLoading(true);
         try {
-            const resp = await axios.get('/getIcons.php');
-            // Ensure we have an array of icons
+            const resp = await axios.get('/api/icons', {
+                timeout: 5000,
+                validateStatus: function (status) {
+                    return status < 500;
+                }
+            });
+            
+            if (resp.status === 403) {
+                console.warn('Access forbidden to icon API');
+                setPngIconList([]);
+                return;
+            }
+            
             setPngIconList(Array.isArray(resp.data) ? resp.data : []);
         } catch (error) {
-            console.error('Failed to fetch PNG icons:', error);
+            console.error('Failed to fetch PNG icons:', error.message);
             setPngIconList([]);
         } finally {
             setIsLoading(false);
@@ -97,7 +108,7 @@ function IconList({selectedIcon}) {
                             <div className="grid grid-cols-6 gap-2 max-h-[400px] overflow-y-auto p-2">
                                 {isLoading ? (
                                     <div className="col-span-6 py-8 text-center text-gray-500">
-                                        Loading icons...
+                                        <span className="animate-pulse">Loading icons...</span>
                                     </div>
                                 ) : pngIconList.length > 0 ? (
                                     pngIconList.map((icon, index) => (
@@ -112,12 +123,26 @@ function IconList({selectedIcon}) {
                                                 setIcon(icon);
                                             }}
                                         >
-                                            <img src={"/png/" + icon} className="w-6 h-6" alt={icon} />
+                                            <img 
+                                                src={"/api/png/" + icon} 
+                                                className="w-6 h-6" 
+                                                alt={icon}
+                                                onError={(e) => {
+                                                    e.target.onerror = null;
+                                                    e.target.src = '/fallback-icon.png';
+                                                }}
+                                            />
                                         </div>
                                     ))
                                 ) : (
                                     <div className="col-span-6 py-8 text-center text-gray-500">
-                                        No color icons available
+                                        <p>Unable to load color icons</p>
+                                        <button 
+                                            onClick={() => getPngIcons()}
+                                            className="text-primary hover:underline text-sm mt-2"
+                                        >
+                                            Try Again
+                                        </button>
                                     </div>
                                 )}
                             </div>
